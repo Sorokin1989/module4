@@ -271,6 +271,4 @@ public class BankService {
             throw new IllegalArgumentException("Нельзя переводить на один и тот же счет!");
         }
     }
-
-
 }
