@@ -1,4 +1,8 @@
-package com.minibank;
+package com.minibank.service;
+
+import com.minibank.model.Account;
+import com.minibank.model.Client;
+import com.minibank.model.Transaction;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -70,7 +74,11 @@ public class BankService {
     }
 
     public void transfer(Long fromAccountId, Long toAccountId, BigDecimal amount) {
-        Account from = getAccount(fromAccountId);
+//        Account from = getAccount(fromAccountId);
+
+
+
+
 
         // Списываем деньги ДО того, как проверили существование счёта-
         // получателя — если toAccountId не существует, деньги уже
