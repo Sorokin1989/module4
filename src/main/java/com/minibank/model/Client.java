@@ -15,4 +15,9 @@ public class Client {
     public Long getId() { return id; }
     public String getName() { return name; }
     public String getEmail() { return email; }
+
+    @Override
+    public String toString() {
+        return "id=" + id + ", name='" + name + ", email='" + email;
+    }
 }

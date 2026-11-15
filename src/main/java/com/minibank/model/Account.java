@@ -21,4 +21,12 @@ public class Account {
     public String getAccountNumber() { return accountNumber; }
     public BigDecimal getBalance() { return balance; }
     public void setBalance(BigDecimal balance) { this.balance = balance; }
+
+    @Override
+    public String toString() {
+        return "id=" + id +
+                ", clientId=" + clientId +
+                ", accountNumber=" + accountNumber +
+                ", balance=" + balance;
+    }
 }
