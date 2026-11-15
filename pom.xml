@@ -15,10 +15,43 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
+    <dependencies>
+        <!-- Драйвер PostgreSQL для JDBC -->
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>42.7.3</version>
+        </dependency>
+        <dependency>
+            <groupId>org.liquibase</groupId>
+            <artifactId>liquibase-core</artifactId>
+            <version>4.33.0</version> <!-- Актуальная стабильная версия -->
+        </dependency>
+    </dependencies>
+
     <!--
         На этом этапе никаких зависимостей не нужно — только голая Java.
         Зависимости (postgresql, hibernate, spring-boot, kafka-clients)
         появятся здесь по мере прохождения модулей — это тоже часть
         задания, добавлять их будете сами.
     -->
+
+   <build>
+       <plugins>
+           <plugin>
+               <groupId>org.liquibase</groupId>
+               <artifactId>liquibase-maven-plugin</artifactId>
+               <version>4.33.0</version>
+               <configuration>
+                   <!-- Укажите путь к вашему главному файлу миграций -->
+                   <changeLogFile>src/main/resources/db/changelog/db.changelog-master.xml</changeLogFile>
+                   <!-- Настройки подключения (те же, что в DatabaseConnection) -->
+                   <url>jdbc:postgresql://localhost:5432/bank_db</url>
+                   <username>admin</username>
+                   <password>admin</password>
+               </configuration>
+           </plugin>
+       </plugins>
+   </build>
+
 </project>
