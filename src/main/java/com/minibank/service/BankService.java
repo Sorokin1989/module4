@@ -8,6 +8,8 @@ import com.minibank.model.Transaction;
 import java.math.BigDecimal;
 import java.sql.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * MiniBank — "MVP", который наспех собрал предыдущий разработчик:
@@ -135,7 +137,7 @@ public class BankService {
                     return new Client(id, name, email);
                 }
             }
-                throw new IllegalArgumentException("Клиент с таким id не найден " + clientId);
+            throw new IllegalArgumentException("Клиент с таким id не найден " + clientId);
 
         } catch (SQLException e) {
             throw new RuntimeException("Ошибка получения клиента! " + clientId, e);
@@ -144,7 +146,7 @@ public class BankService {
 
     public void transfer(Long fromAccountId, Long toAccountId, BigDecimal amount) {
 
-        validate(fromAccountId, toAccountId, amount);
+        validateTransferParams(fromAccountId, toAccountId, amount);
 
         String withdrawSql = "UPDATE accounts SET balance = balance - ? WHERE id = ? AND balance >= ?";
         String depositSql = "UPDATE accounts SET balance = balance + ? WHERE id = ?";
@@ -198,7 +200,63 @@ public class BankService {
 
         }
     }
-    private void validate(Long fromAccountId, Long toAccountId, BigDecimal amount) {
+
+    public List<Transaction> getTransactions(Long accountId, LocalDateTime from, LocalDateTime to) {
+
+        validateRequest(accountId, from, to);
+
+
+        String transactionSql = "SELECT id, account_id, amount, type, transaction_date \n" +
+                "FROM transactions \n" +
+                "WHERE account_id = ? AND transaction_date BETWEEN ? AND ?\n" +
+                "ORDER BY transaction_date DESC";
+
+        List<Transaction> transactions = new ArrayList<>();
+
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(transactionSql)) {
+            statement.setLong(1, accountId);
+            statement.setTimestamp(2, Timestamp.valueOf(from));
+            statement.setTimestamp(3, Timestamp.valueOf(to));
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+
+                while (resultSet.next()) {
+                    long id = resultSet.getLong("id");
+                    long accId = resultSet.getLong("account_id");
+                    BigDecimal amount = resultSet.getBigDecimal("amount");
+                    String type = resultSet.getString("type");
+                    LocalDateTime transactionDate = resultSet.getTimestamp("transaction_date").toLocalDateTime();
+
+                    transactions.add(new Transaction(id, accId, amount, type, transactionDate));
+                }
+            }
+
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Ошибка при получении транзакций ", e);
+        }
+
+        return transactions;
+
+    }
+
+    private void validateRequest(Long accountId, LocalDateTime from, LocalDateTime to) {
+        if (accountId == null || accountId <= 0) {
+            throw new IllegalArgumentException("Некорректный id " + accountId);
+        }
+
+        if (from == null || to == null) {
+            throw new IllegalArgumentException("Некорректная дата!");
+        }
+
+        if (from.isAfter(to)) {
+            throw new IllegalArgumentException("Начальная дата не может быть позже конечной!");
+        }
+    }
+
+
+    private void validateTransferParams(Long fromAccountId, Long toAccountId, BigDecimal amount) {
         if (amount == null || amount.signum() <= 0) {
             throw new IllegalArgumentException("Сумма должна быть положительной!");
         }
