@@ -1,10 +1,16 @@
 package com.minibank;
 
+import com.minibank.model.Account;
+import com.minibank.model.Client;
+import com.minibank.service.BankService;
+
 import java.math.BigDecimal;
 
 public class Main {
 
     public static void main(String[] args) {
+
+
         BankService bank = new BankService();
 
         Client client = bank.registerClient("Ivan Petrov", "ivan@example.com");
