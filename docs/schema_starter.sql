@@ -12,20 +12,25 @@
 CREATE TABLE clients (
     id BIGSERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
-    email VARCHAR(255) NOT NULL
+    email VARCHAR(255) UNIQUE NOT NULL
+
 );
 
 CREATE TABLE accounts (
     id BIGSERIAL PRIMARY KEY,
-    client_id BIGINT NOT NULL,
-    account_number VARCHAR(34) NOT NULL,
+    client_id BIGINT NOT NULL references clients(id),
+    account_number VARCHAR(34) UNIQUE NOT NULL,
     balance NUMERIC(19,4) NOT NULL DEFAULT 0
+
 );
 
 CREATE TABLE transactions (
     id BIGSERIAL PRIMARY KEY,
-    account_id BIGINT NOT NULL,
+    account_id BIGINT NOT NULL references accounts(id),
     amount NUMERIC(19,4) NOT NULL,
     type VARCHAR(20) NOT NULL,
     transaction_date TIMESTAMP NOT NULL DEFAULT now()
 );
+
+CREATE INDEX inx_transactions_account_date
+ON transactions(account_id,transaction_date)

@@ -1,11 +1,12 @@
 package com.minibank;
 
+import com.minibank.dao.AccountDao.AccountDao;
+import com.minibank.dao.ClientDao.ClientDao;
+import com.minibank.dao.TransactionDao.TransactionDao;
 import com.minibank.model.Account;
-import com.minibank.model.Client;
 import com.minibank.model.Transaction;
 import com.minibank.service.BankService;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -14,12 +15,14 @@ public class Main {
     public static void main(String[] args) {
 
 
-        BankService bank = new BankService();
+        BankService bank = new BankService(new ClientDao(),
+                new AccountDao(),
+                new TransactionDao());
 
 //        Client client = bank.registerClient("Ivan Petro", "van@example.com");
 //        Account account=bank.openAccount(client.getId(),"12345");
 
-        Account account=bank.getAccount(199L);
+        Account account = bank.getAccount(199L);
         System.out.println(account);
 
 //        bank.transfer(199L,203L,BigDecimal.valueOf(1000));
@@ -37,14 +40,10 @@ public class Main {
         }
 
 
-
 //        System.out.println(bank.getClient(103L));
 
 
-
 //
-
-
 
 
 //        Account account1 = bank.openAccount(client.getId(), "ACC-001");
