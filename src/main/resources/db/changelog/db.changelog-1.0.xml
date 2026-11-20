@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!-- Создание таблицы clients -->
+    <changeSet id="1-create-clients" author="your-name">
+        <createTable tableName="clients">
+            <column name="id" type="BIGSERIAL" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="email" type="VARCHAR(255)">
+                <!-- UNIQUE на email -->
+                <constraints nullable="false" unique="true"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <!-- Создание таблицы accounts с FOREIGN KEY -->
+    <changeSet id="2-create-accounts" author="your-name">
+        <createTable tableName="accounts">
+            <column name="id" type="BIGSERIAL" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="client_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="account_number" type="VARCHAR(34)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="balance" type="NUMERIC(19,4)" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <!-- FOREIGN KEY на clients -->
+        <addForeignKeyConstraint baseTableName="accounts" baseColumnNames="client_id"
+                                 constraintName="fk_account_client"
+                                 referencedTableName="clients" referencedColumnNames="id"/>
+    </changeSet>
+
+    <!-- Создание таблицы transactions с FOREIGN KEY -->
+    <changeSet id="3-create-transactions" author="your-name">
+        <createTable tableName="transactions">
+            <column name="id" type="BIGSERIAL" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="account_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="amount" type="NUMERIC(19,4)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="type" type="VARCHAR(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="transaction_date" type="TIMESTAMP" defaultValueComputed="now()">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <!-- FOREIGN KEY на accounts -->
+        <addForeignKeyConstraint baseTableName="transactions" baseColumnNames="account_id"
+                                 constraintName="fk_transaction_account"
+                                 referencedTableName="accounts" referencedColumnNames="id"/>
+    </changeSet>
+
+    <!-- Создание индекса для транзакций -->
+    <changeSet id="4-create-index" author="your-name">
+        <createIndex tableName="transactions" indexName="idx_transactions_account_date">
+            <column name="account_id"/>
+            <column name="transaction_date"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- Изменение 5: Генерация тестовых данных -->
+    <changeSet id="5-generate-test-data" author="your-name" context="test">
+        <sql>
+            -- 1. Создаем 100 клиентов
+            INSERT INTO clients (name, email)
+            SELECT
+                'Client ' || i,
+                'client' || i || '@example.com'
+            FROM generate_series(1, 100) AS i;
+
+            -- 2. Создаем по 2 счета для каждого клиента (итого 200 счетов)
+            INSERT INTO accounts (client_id, account_number, balance)
+            SELECT
+                c.id,
+                'ACC-' || c.id || '-' || j,
+                10000.00 -- Начальный баланс
+            FROM clients c
+                     CROSS JOIN generate_series(1, 2) AS j;
+
+            -- 3. Генерируем 50 000 транзакций
+            INSERT INTO transactions (account_id, amount, type, transaction_date)
+            SELECT
+                (random() * 199 + 1)::int, -- Случайный ID счета от 1 до 200
+                (random() * 1000)::numeric(19,4), -- Случайная сумма
+                CASE WHEN random() > 0.5 THEN 'DEPOSIT' ELSE 'WITHDRAW' END,
+                now() - (random() * interval '365 days') -- Случайная дата за последний год
+            FROM generate_series(1, 50000);
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>
